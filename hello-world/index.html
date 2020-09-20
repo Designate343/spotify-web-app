@@ -1,0 +1,47 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <p>{{ message }}</p>
+        <button v-on:click="reverseMessage">Reverse Message</button>
+    </div>
+
+    <div id="app-6">
+        <input v-model="message">
+      </div>
+
+    <div id="spotify-top-tracks">
+        <button v-on:click="downloadTopTracks">Get your most popular recent tracks</button>
+        <ol>
+            <li v-for="track in tracks">
+                {{ track.text }}
+            </li>
+        </ol>
+    </div>
+
+    <div id="get-recomendations">
+        <input v-model="searchString">
+        <button v-on:click="searchForTrackName">Search for Track name</button>
+        <ol>
+            <li v-for="track in tracks" v-bind:key="track.id">
+                {{ track.text }}
+                <button v-on:click="generateRecomendations(track.id)">Recomendations for track name</button>
+                <ul>
+                    <li v-for="recomendation in track.recomendations" v-bind:key="recomendation.id">
+                        {{recomendation.text}}
+                    </li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>
