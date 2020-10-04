@@ -3,10 +3,11 @@ var spotifyTopTracks = new Vue({
     data: {
         tracks: [
         ],
-        timeframe : 'medium_term'
+        timeframe: 'medium_term'
     },
     methods: {
         downloadTopTracks: function () {
+            extractSpotifyAuthKeyFromUrl();
             var url = "https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=" + this.timeframe;
             this.tracks = [];
 
@@ -34,11 +35,11 @@ var spotifyTopTracks = new Vue({
 
                     this.tracks.push({
                         'track_name': name,
-                        'artist_name' : artistName,
-                        'album_name' : albumName,
-                        'track_id' : id,
-                        'preview_url' : element['preview_url'],
-                        'image' : mediumImage
+                        'artist_name': artistName,
+                        'album_name': albumName,
+                        'track_id': id,
+                        'preview_url': element['preview_url'],
+                        'image': mediumImage
                     });
                 }));
         }
@@ -65,7 +66,7 @@ var getRecomendations = new Vue({
             //TODO: not updating if search is replaced
             urlSearchParams.set('q', this.searchString);
             urlSearchParams.set('limit', 10);
-        
+
             //reset tracks
             this.tracks = [];
 
@@ -122,9 +123,9 @@ var getRecomendations = new Vue({
                         let trackString = name + " " + artistName + " " + albumName;
 
                         recomendations.push({
-                                'text': trackString,
-                                'id': id
-                            });
+                            'text': trackString,
+                            'id': id
+                        });
                     });
                     var newValue = this.tracks[trackIndex];
                     newValue.recomendations = recomendations;
@@ -147,12 +148,18 @@ async function getJsonResponse(url) {
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
         });
-}
+};
+
+function extractSpotifyAuthKeyFromUrl() {
+    let uri = window.location.hash; 
+    let params = new URLSearchParams(uri.substring(1));
+    return params.get('access_token');
+};
 
 const requestParams = {
     method: 'GET',
     headers: {
-        'Authorization': 'Bearer BQAY8QYNgPy6i-R9bieOsu95TCvssFwg8Xu9SV23c2bjOlwH5jWNAQ_peC2h5ZTFM_1OICeB8fbFJ7Yy6yo0NDRwXmeihDM81bFozLX-5QcjEtNDFJGIjmPf2RGnJRaNEcxcLGnFuaRhad4nthd9vDQWar0SflyUX7nD8z8eAaGIblN3mg'
+        'Authorization': 'Bearer ' + extractSpotifyAuthKeyFromUrl()
     },
     mode: 'cors',
     cache: 'default',
