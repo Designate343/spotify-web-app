@@ -1,48 +1,44 @@
-var app = new Vue({
-    el: '#app',
-    data: {
-        message: 'Hello Vue.js!'
-    },
-    methods: {
-        reverseMessage: function () {
-            this.message = this.message.split('').reverse().join('');
-        }
-    }
-});
-
-var app6 = new Vue({
-    el: '#app-6',
-    data: {
-        message: 'Hello Vue!'
-    }
-});
-
 var spotifyTopTracks = new Vue({
     el: '#spotify-top-tracks',
     data: {
         tracks: [
-        ]
+        ],
+        timeframe : 'medium_term'
     },
     methods: {
         downloadTopTracks: function () {
-            var url = "https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=long_term";
+            var url = "https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=" + this.timeframe;
             this.tracks = [];
 
-            fetch(url, requestParams)
-                .then(response => response.json())
+            getJsonResponse(url)
                 .then(response => response['items'])
                 .then(items => items.forEach(element => {
                     let name = element['name'];
                     console.log(element);
                     let artists = element['artists'];
-                    //only use first artist even if there are 2
+                    //only use first artist even if there are 2 (maybe fix in future)
                     let artistName = artists[0]['name'];
                     let albumName = element["album"]["name"];
                     let id = element['id'];
 
-                    let trackString = name + " " + artistName + " " + albumName + " " + id;
+                    //get images
+                    let images = element['album']['images']
+                    let mediumImage;
+                    for (let index = 0; index < images.length; index++) {
+                        const image = images[index];
+                        if (image['height'] == 300) { //yuck
+                            mediumImage = image;
+                            break;
+                        }
+                    }
+
                     this.tracks.push({
-                        'text': trackString
+                        'track_name': name,
+                        'artist_name' : artistName,
+                        'album_name' : albumName,
+                        'track_id' : id,
+                        'preview_url' : element['preview_url'],
+                        'image' : mediumImage
                     });
                 }));
         }
@@ -59,6 +55,7 @@ var getRecomendations = new Vue({
     },
     methods: {
         //initially just do search + get recommendations
+        //TODO: needs to clear what has been searched for existingly
         searchForTrackName: function () {
             var url = 'https://api.spotify.com/v1/search';
             let type = 'track';
@@ -68,8 +65,13 @@ var getRecomendations = new Vue({
             //TODO: not updating if search is replaced
             urlSearchParams.set('q', this.searchString);
             urlSearchParams.set('limit', 10);
+        
+            //reset tracks
+            this.tracks = [];
 
-            getTrackList(url + '?' + urlSearchParams.toString())
+            getJsonResponse(url + '?' + urlSearchParams.toString())
+                .then(json => json['tracks'])
+                .then(tracks => tracks['items'])
                 .then(items => items.forEach(element => {
                     let name = element['name'];
                     let artists = element['artists'];
@@ -87,7 +89,7 @@ var getRecomendations = new Vue({
                 }));
         },
 
-        generateRecomendations(trackId) {
+        generateRecomendationsForTrack(trackId) {
             var url = 'https://api.spotify.com/v1/recommendations';
             console.log(trackId);
 
@@ -106,13 +108,7 @@ var getRecomendations = new Vue({
                 }
             }
 
-            fetch(url + '?' + urlSearchParams.toString(), requestParams)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok, response ' + response.status + " " + response.statusText);
-                    }
-                    return response.json();
-                })
+            getJsonResponse(url + '?' + urlSearchParams.toString(), requestParams)
                 .then(json => json['tracks'])
                 .then(items => {
                     var recomendations = []
@@ -124,14 +120,6 @@ var getRecomendations = new Vue({
                         let id = element['id'];
 
                         let trackString = name + " " + artistName + " " + albumName;
-                        console.log(trackString);
-
-                        //component does not update, probably because of https://forum.vuejs.org/t/nested-list-not-updating-when-pushing-to-the-nested-array/81996/2
-                        //would probably work if recomendations loaded for every track pre-emptively
-                        // this.tracks[trackIndex].recomendations.push({
-                        //     'text': trackString,
-                        //     'id': id
-                        // });
 
                         recomendations.push({
                                 'text': trackString,
@@ -140,17 +128,14 @@ var getRecomendations = new Vue({
                     });
                     var newValue = this.tracks[trackIndex];
                     newValue.recomendations = recomendations;
-                    //needs to do this special setting https://vuejs.org/v2/guide/reactivity.html#For-Arrays
+                    //needs to do this special setting to update component https://vuejs.org/v2/guide/reactivity.html#For-Arrays 
                     getRecomendations.$set(getRecomendations.tracks, trackIndex, newValue);
-                })
-                .catch(error => {
-                    console.error('There has been a problem with your fetch operation:', error);
                 });
         }
     }
 });
 
-async function getTrackList(url) {
+async function getJsonResponse(url) {
     //try and map to reduced object in here?
     return fetch(url, requestParams)
         .then(response => {
@@ -159,8 +144,6 @@ async function getTrackList(url) {
             }
             return response.json();
         })
-        .then(json => json['tracks'])
-        .then(tracks => tracks['items'])
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
         });
@@ -169,7 +152,7 @@ async function getTrackList(url) {
 const requestParams = {
     method: 'GET',
     headers: {
-        'Authorization': 'Bearer BQA8IUtEAOHADFthQUKi9x1c0iK6LO8YCJpIqPJqm1eaaQ8kNIkvM-aDNyswGQGhCE-LsIhEuy1WYgq-7D7Pntp1pBCmgUowBiZqufqqEqUpDi-M3y5_81sAYKdyVYuHiJ6REBKB-XIvZk8cxICU68JvWkIp9SY0mPK_9LLvEhE82cKR0Q'
+        'Authorization': 'Bearer BQAY8QYNgPy6i-R9bieOsu95TCvssFwg8Xu9SV23c2bjOlwH5jWNAQ_peC2h5ZTFM_1OICeB8fbFJ7Yy6yo0NDRwXmeihDM81bFozLX-5QcjEtNDFJGIjmPf2RGnJRaNEcxcLGnFuaRhad4nthd9vDQWar0SflyUX7nD8z8eAaGIblN3mg'
     },
     mode: 'cors',
     cache: 'default',
