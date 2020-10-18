@@ -19,16 +19,16 @@
             <option>long_term</option>
           </select>
         
-        <ul class="inlineList">
+        <ul>
             <li v-for="track in tracks">
-                <!--These elements need to be a single entitiy and not be in a line!-->
                 <div style="display: block;">
                     <div>
                         {{ track.track_name }} {{track.artist_name}}
                     </div>
                     <div>
-                        <img :src="track.image.url">
+                        <img :src="track.image.url" height="140" width="140">
                     </div>
+                    <!-- Make this look less horrifically ugly-->
                     <p>Preview of track</p>
                     <div>
                         <audio controls>
@@ -39,26 +39,18 @@
                 </div>
             </li>
         </ul>
-    </div>
-
-    <h3>Search for a track and get recomendations based on it!</h3>
-    <div id="get-recomendations">
-        <input v-model="searchString">
-        <button v-on:click="searchForTrackName">Search for Track name</button>
-        <ol>
-            <li v-for="track in tracks" v-bind:key="track.id">
-                {{ track.text }}
-                <button v-on:click="generateRecomendationsForTrack(track.id)">Recomendations for track name</button>
-                <ul>
-                    <li v-for="recomendation in track.recomendations" v-bind:key="recomendation.id">
-                        {{recomendation.text}}
-                    </li>
-                </ul>
+        <button v-on:click="getMostPopularGenres">Find out the top genres</button>
+        <ul>
+            <li v-for="genreMap in genres">
+                <div>
+                    {{genreMap.genreName}} {{genreMap.genreInstances}}
+                </div>
             </li>
-        </ol>
+        </ul>
     </div>
 
-    <script src="index.js"></script>
+    <script type="module" src="index.js"></script>
+    <script type="module" src="./http_help.js"></script>
 </body>
 
 </html>

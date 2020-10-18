@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+    <h3>Search for a track and get recomendations based on it!</h3>
+    <div id="get-recomendations">
+        <input v-model="searchString">
+        <button v-on:click="searchForTrackName">Search for Track name</button>
+        <ol>
+            <li v-for="track in tracks" v-bind:key="track.id">
+                {{ track.text }}
+                <button v-on:click="generateRecomendationsForTrack(track.id)">Recomendations for track name</button>
+                <ul>
+                    <li v-for="recomendation in track.recomendations" v-bind:key="recomendation.id">
+                        {{recomendation.text}}
+                    </li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <script type="module" src="search_recomendations.js"></script>
+    <script type="module" src="./http_help.js"></script>
+</body>
+
+</html>

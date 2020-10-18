@@ -1,21 +1,41 @@
+import { getJsonResponse } from './http_help.js';
+
 var spotifyTopTracks = new Vue({
     el: '#spotify-top-tracks',
     data: {
         tracks: [
         ],
+        tracksCache: {
+
+        },
+        genres: [],
         timeframe: 'medium_term'
     },
     methods: {
         downloadTopTracks: function () {
-            extractSpotifyAuthKeyFromUrl();
             var url = "https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=" + this.timeframe;
+            if (this.tracksCache == undefined) {
+                this.tracksCache = {}
+            } else {
+                if (this.timeframe in this.tracksCache) {
+                    this.tracks = this.tracksCache[this.timeframe]['processed'];
+                    return;
+                } else {
+                    this.tracksCache[this.timeframe] = {
+                        'raw': [],
+                        'processed': [],
+                        'genreHistogram' : {}
+                    }
+                }
+            }
             this.tracks = [];
+            let tracksRaw = [];
 
             getJsonResponse(url)
                 .then(response => response['items'])
                 .then(items => items.forEach(element => {
+                    tracksRaw.push(element);
                     let name = element['name'];
-                    console.log(element);
                     let artists = element['artists'];
                     //only use first artist even if there are 2 (maybe fix in future)
                     let artistName = artists[0]['name'];
@@ -42,21 +62,74 @@ var spotifyTopTracks = new Vue({
                         'image': mediumImage
                     });
                 }));
+            this.tracksCache[this.timeframe]['processed'] = this.tracks;
+            this.tracksCache[this.timeframe]['raw'] = tracksRaw;
+        },
+
+        getMostPopularGenres() {
+            //need to lookup artists to get most popular genres of these popular tracks
+            let artistIds = new Set();
+
+            let tracksResponse = this.tracksCache[this.timeframe]['raw'];
+            console.log(tracksResponse);
+            tracksResponse.forEach(track => {
+                let artists = track['artists'];
+                artists.forEach(artist => {
+                    if (artistIds.size < 50) { //temporary hack as spotify API only allows 50 artist ids
+                        artistIds.add(artist['id']);
+                    }
+                });
+            });
+
+            var artistIdsString = "";
+            for (let item of artistIds.keys()) {
+                artistIdsString += ',';
+                artistIdsString += item;
+            }
+
+            var urlSearchParams = new URLSearchParams();
+            urlSearchParams.set('ids', artistIdsString.substring(1));
+            let artistResponse = getJsonResponse('https://api.spotify.com/v1/artists?' + urlSearchParams.toString());
+
+            let artistGenreHistogram = {};
+            artistResponse.then(response => response['artists'])
+                .then(artists => artists.forEach(
+                    artist => {
+                        let genres = artist['genres'];
+                        genres.forEach(genre => {
+                            if (genre in artistGenreHistogram) {
+                                artistGenreHistogram[genre] = artistGenreHistogram[genre] + 1;
+                            } else {
+                                artistGenreHistogram[genre] = 1;
+                            }
+                        });
+                    }
+                ))
+                .then(() => {
+                    let keysSorted = Object.keys(artistGenreHistogram).sort(function (a, b) { return artistGenreHistogram[b] - artistGenreHistogram[a] });
+                    let topFifteen = [];
+
+                    keysSorted.slice(0, 15).forEach(key => {
+                        let keyValue = {};
+                        keyValue['genreName'] = key;
+                        keyValue['genreInstances'] = artistGenreHistogram[key];
+                        topFifteen.push(keyValue)
+                    });
+                    this.tracksCache[this.timeframe]['genreHistogram'] = topFifteen;
+                    this.genres = topFifteen;
+                });
         }
     }
 });
 
-var getRecomendations = new Vue({
-    el: '#get-recomendations',
+//TODO: sort all this stuff
+var search = new Vue({
+    el: '#do-search',
     data: {
-        searchString: '',
-        trackId: '',
-        tracks: [
-        ]
+        searchString: "",
+        tracks: []
     },
     methods: {
-        //initially just do search + get recommendations
-        //TODO: needs to clear what has been searched for existingly
         searchForTrackName: function () {
             var url = 'https://api.spotify.com/v1/search';
             let type = 'track';
@@ -88,8 +161,20 @@ var getRecomendations = new Vue({
                     });
                     //each item must be clickable to generate some recomendations based on it
                 }));
-        },
+        }
+    }
+});
 
+var getRecomendations = new Vue({
+    el: '#get-recomendations',
+    data: {
+        trackId: '',
+        tracks: [
+        ]
+    },
+    methods: {
+        //slightly strange that this adds the recomendations tracks in place - makes more sense to 
+        //search just for one track surely - and display results somewhere else? 
         generateRecomendationsForTrack(trackId) {
             var url = 'https://api.spotify.com/v1/recommendations';
             console.log(trackId);
@@ -135,32 +220,3 @@ var getRecomendations = new Vue({
         }
     }
 });
-
-async function getJsonResponse(url) {
-    //try and map to reduced object in here?
-    return fetch(url, requestParams)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok, response ' + response.status + " " + response.statusText);
-            }
-            return response.json();
-        })
-        .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
-        });
-};
-
-function extractSpotifyAuthKeyFromUrl() {
-    let uri = window.location.hash; 
-    let params = new URLSearchParams(uri.substring(1));
-    return params.get('access_token');
-};
-
-const requestParams = {
-    method: 'GET',
-    headers: {
-        'Authorization': 'Bearer ' + extractSpotifyAuthKeyFromUrl()
-    },
-    mode: 'cors',
-    cache: 'default',
-};
