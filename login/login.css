@@ -1,0 +1,29 @@
+
+@import url('./../index.css');
+
+.loginLink {
+    text-align: center;
+}
+
+a.pseudoButton {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    padding: 14px 28px;
+    font-size: 16px;
+    background-color: rgb(75, 170, 75);
+    color: white;
+    border-radius: 8px;
+    border: none;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: lightslategrey;
+    color: black;
+    text-align: center;
+}

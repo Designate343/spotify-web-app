@@ -7,35 +7,35 @@
 
 <body>
 
-    <h1>Spotify API Stuff</h1>
+    <h1 class="topTitle">Find out what your top played tracks and genres are on Spotify!</h1>
 
-    <h3>Find your most played tracks</h3>
-    <div id="spotify-top-tracks" class="tableview">
-        <button v-on:click="downloadTopTracks">Get your most popular recent tracks</button>
-        <select v-model="timeframe">
+    <h3 style="text-align: center;">Find your most played tracks</h3>
+    <div style="text-align: center;" id="spotify-top-tracks">
+        <select class="timerange-dropdown-select" v-model="timeframe">
             <option disabled value="">Please select a timeframe</option>
             <option>short_term</option>
             <option>medium_term</option>
             <option>long_term</option>
-          </select>
-        
-        <ul>
+        </select>
+        <button v-on:click="downloadTopTracks">Go</button>
+
+        <ul class="inline-list">
             <li v-for="track in tracks">
-                <div style="display: block;">
-                    <div>
-                        {{ track.track_name }} {{track.artist_name}}
+                <div>
+                    <div class="track-info-in-list">
+                        <p>Track name: {{ track.track_name}}</p>
+                        <p>Artist: {{track.artist_name}}</p>
                     </div>
-                    <div>
-                        <img :src="track.image.url" height="140" width="140">
-                    </div>
-                    <!-- Make this look less horrifically ugly-->
-                    <p>Preview of track</p>
-                    <div>
-                        <audio controls>
-                            <source :src=track.preview_url type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                    </div>
+
+                    <div class="audio-player-in-image">
+                        <img :src="track.image.url">
+                        <div v-if="track.isPlaying">
+                            <button class="play-pause-button" v-on:click="pause(track)">Pause track</button>
+                          </div>
+                          <div v-else>
+                            <button class="play-pause-button" v-on:click="play(track)">Play preview</button>
+                          </div>
+                    </div> 
                 </div>
             </li>
         </ul>
