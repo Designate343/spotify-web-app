@@ -1,0 +1,71 @@
+.centered {
+  text-align: center;
+}
+
+.topTitle {
+  top: 10;
+  margin-bottom: 5%;
+  margin-top: 2%;
+}
+
+.track-info-in-list {
+  max-width: 180px;
+}
+
+.nice-button {
+padding: 8px 16px;
+font-size: 12px;
+background-color: rgb(75, 170, 75);
+color: white;
+border-radius: 8px;
+border: none;
+margin-top: 2%
+}
+
+.timerange-dropdown-select {
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.inline-list li {
+  display: inline-flex;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.inline-list ul {
+  list-style: none;
+}
+
+/* Container needed to position the button. Adjust the width as needed */
+.audio-player-in-image {
+  position: relative;
+  width: 180px;
+  height: 180px;
+}
+
+.audio-player-in-image img {
+  width: 180px;
+  height: 180px;
+}
+
+/* Style the button and place it in the middle of the container/image */
+.audio-player-in-image .play-pause-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  background-color: #555;
+  color: white;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.audio-player-in-image .play-pause-button:hover {
+  background-color: black;
+} 
