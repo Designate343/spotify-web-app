@@ -96,6 +96,10 @@ class MostPopularTracks extends React.Component {
     };
 
     exportToPlaylist() {
+        let now = new Date();
+        let monthName = new Intl.DateTimeFormat('en-GB', { month: 'long'}).format(now);
+        let monthYear = monthName + '-' + now.getFullYear();
+
         let name = 'most popular tracks in ' + this.state.timeframe;
         if (this.state.createdPlaylists.includes(name)) {
             return; //simple way of not creating many duplicate playlists
@@ -109,7 +113,7 @@ class MostPopularTracks extends React.Component {
             const playlistsPath = 'https://api.spotify.com/v1/users/' + profileId + '/playlists';
 
             let playlistRequest = {
-                'name': name,
+                'name': name + ':' + monthYear,
                 'public': false
             };
             let playlist = post(playlistsPath, playlistRequest);
